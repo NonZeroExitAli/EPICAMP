@@ -1,3 +1,5 @@
+1- Classification Module
+
 Architecture
 
 Data Sources: The datasets used include APD3, DRAMP, ADAM, CAMP, and dbAMP, which provide sequences of antimicrobial peptides (AMPs). For non-AMPs, sequences were extracted from available datasets and curated to serve as negative examples in the classification task.
@@ -65,3 +67,99 @@ Dependencies
   - Python Libraries: pandas, numpy, matplotlib, scikit-learn, imblearn, lime, propy, shap
   - External Tools: CD-HIT for sequence clustering
   - Environment: Google Colab with GPU for efficient computation
+
+
+
+2- Regression Module
+
+Architecture
+
+Data Sources:  
+The datasets used in this study include curated antimicrobial peptide (AMP) sequences and their experimentally measured MIC values for four organisms: E. coli, Staphylococcus aureus, Pseudomonas aeruginosa, and Pneumoniae. The datasets were collected from public repositories and preprocessed to ensure high-quality data for regression modeling.
+
+Preprocessing:  
+The preprocessing pipeline included multiple steps:  
+- Removal of sequences containing unknown amino acids or non-standard characters.  
+- Conversion of sequences to uppercase to ensure consistency.  
+- Filtering out sequences shorter than 10 amino acids to remove peptides unlikely to exhibit measurable activity.  
+- Redundant sequences were removed, ensuring a unique set of peptide sequences per organism.
+
+Feature Extraction:  
+ProtBERT, a transformer-based protein language model, was used to generate embeddings for all sequences. Steps included:  
+- Tokenization of sequences using the ProtBERT tokenizer.  
+- Padding/truncation of sequences to a fixed length of 512 tokens.  
+- Extraction of embeddings from the last hidden state of the model.  
+- Averaging over token embeddings to obtain a fixed-length vector representation for each sequence.
+
+Feature Scaling and Dimensionality Reduction:  
+- StandardScaler was applied to normalize features before model training.  
+- Principal Component Analysis (PCA) was used to reduce dimensionality while retaining 95% of variance, primarily for models sensitive to high-dimensional inputs (e.g., SVR and MLP).
+
+Targets:  
+- MIC values were log-transformed using log1p to reduce skewness and stabilize variance for regression.
+
+---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+
+Design Decisions
+
+Data Cleaning:  
+- Only sequences with lengths >10 were retained to exclude potentially non-functional peptides.  
+- Log transformation of MIC values ensures numerical stability and reduces the impact of extreme values.
+
+Feature Selection / Dimensionality Reduction:  
+- PCA was used to reduce high-dimensional ProtBERT embeddings for specific models.  
+- No additional feature selection was applied beyond PCA since embeddings already capture rich sequence information.
+
+Model Selection and Parameters:  
+Four regression models were trained and evaluated using the same embeddings:  
+- Support Vector Regressor (SVR): RBF kernel, PCA-reduced embeddings, handles non-linear relationships.  
+- Random Forest Regressor: 100 trees, robust to high-dimensional data and outliers.  
+- XGBoost Regressor: 100 estimators, objective='reg:squarederror', captures complex non-linear patterns.  
+- MLP Regressor: Two hidden layers (512, 128), max_iter=500, PCA-reduced embeddings used to reduce overfitting and accelerate convergence.
+
+Imbalanced Data Handling:  
+- Not directly applicable for regression, but log transformation of MIC values reduces skew caused by extreme MICs.
+
+Evaluation Metrics:  
+- Regression performance was measured using:  
+  - Mean Squared Error (MSE)  
+  - Log-transformed MSE (MSE(log))  
+  - R² Score  
+  - Mean Absolute Error (MAE)  
+  - Pearson and Kendall correlation coefficients  
+- The best model per organism was determined using a combined rank of R² and MSE.
+
+---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+
+Algorithms Used
+
+Embedding Extraction:  
+- ProtBERT: Transformer-based protein language model that generates contextualized embeddings for sequences.
+
+Regression Models:  
+- SVR, Random Forest Regressor, XGBoost, MLP Regressor.
+
+Dimensionality Reduction:  
+- PCA for retaining 95% variance in high-dimensional embeddings.
+
+Model Evaluation:  
+- Split data into training and test sets (80:20).  
+- Evaluated performance using multiple metrics including correlation and error measures.
+
+Visualization / Explainability:  
+- Scatter plots of true vs predicted MIC values.  
+- Residual distribution plots.  
+- Bland-Altman plots to evaluate agreement between predicted and true values.
+
+---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+
+Dependencies
+
+Python Libraries:  
+pandas, numpy, tqdm, transformers, torch, sklearn, xgboost, matplotlib, seaborn, scipy
+
+Environment:  
+Google Colab with GPU recommended for ProtBERT embedding generation due to computational intensity.
+
+External Tools:  
+ProtBERT model from HuggingFace (Rostlab/prot_bert)

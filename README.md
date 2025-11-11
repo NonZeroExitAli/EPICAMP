@@ -17,7 +17,7 @@ Antimicrobial peptides (AMPs) are promising alternatives to antibiotics. This pr
 
 ## Project Pipeline
 
-![EPIC-AMP Pipeline](https://github.com/user-attachments/assets/d5a3d1b7-e3f0-41d3-a55e-a8ad5528de40)
+![EPIC-AMP Pipeline](https://github.com/NonZeroExitAli/EPICAMP/Classification%20(1).png)
 
 ### Steps
 

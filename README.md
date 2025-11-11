@@ -1,49 +1,130 @@
-# Evaluating Machine Learning Classifiers for Effective Identification of Antimicrobial Peptides
-This project applies machine learning to classify antimicrobial peptides (AMPs), integrating diverse datasets, extracting key sequence features, and training models like SVM and Random Forest to optimize accuracy.
-## Pipeline description
+# EPIC-AMP: A Comprehensive Machine Learning Framework for Antimicrobial Peptide Classification and MIC Prediction
 
-![image](https://github.com/user-attachments/assets/d5a3d1b7-e3f0-41d3-a55e-a8ad5528de40)
+EPIC-AMP (Explainable Platform for Interpretable Classification of Antimicrobial Peptides) integrates machine learning, explainable AI, and web deployment to identify antimicrobial peptides (AMPs) and predict their minimum inhibitory concentration (MIC) against major pathogens.
+
+---
+
+## Overview
+
+Antimicrobial peptides (AMPs) are promising alternatives to antibiotics. This project establishes a reproducible and interpretable machine learning pipeline for:
+
+- Classifying AMPs vs non-AMPs  
+- Predicting quantitative MIC values for *E. coli*, *S. aureus*, *P. aeruginosa*, and *K. pneumoniae*  
+- Deploying the best-performing models as a public web tool:  
+  https://nonzeroexit-epic-amp.static.hf.space/index.html
+
+---
+
+## Project Pipeline
+
+![EPIC-AMP Pipeline](https://github.com/user-attachments/assets/d5a3d1b7-e3f0-41d3-a55e-a8ad5528de40)
+
+### Steps
+
+1. **Data Acquisition & Cleaning**  
+   - Merged data from six AMP databases (APD3, CAMP, dbAMP, DRAMP, ADAM, DBAASP)  
+   - Non-AMPs retrieved from UniProt  
+   - CD-HIT clustering (90% identity)  
+   - Sequences limited to 10–100 amino acids  
+   - Class balancing using SMOTE
+
+2. **Feature Engineering**  
+   - Extracted features using ProPy3:
+     - Amino Acid Composition (AAC)
+     - Autocorrelation
+     - Composition, Transition, Distribution (CTD)
+     - Pseudo-Amino Acid Composition (PseAAC)
+   - Deep embeddings from ProtBert used for regression tasks.
+
+3. **Feature Selection**  
+   - Combined techniques:
+     - Variance Threshold (VT)
+     - Recursive Feature Elimination (RFE)
+     - Random Forest Importance
+     - Boruta Algorithm  
+   - Generated over 225 feature combinations for classification and regression.
+
+4. **Model Training**  
+   - Classification Models: Random Forest (RF), Support Vector Machine (SVM), K-Nearest Neighbors (KNN)  
+   - Regression Models: XGBoost, Random Forest Regressor, Support Vector Regressor, Multilayer Perceptron (MLP)  
+   - Hyperparameter tuning performed using GridSearchCV.
+
+5. **Explainable AI (XAI)**  
+   - SHAP for global feature importance  
+   - LIME for local, sequence-specific interpretation
+
+6. **Deployment**  
+   - Best-performing models integrated into a Streamlit-based web interface  
+   - Provides live AMP classification and MIC prediction with interpretability.
+
+---
+
+## Key Results
+
+| Task | Model | Performance Highlights |
+|------|--------|------------------------|
+| Classification | Random Forest (Boruta + all features) | Accuracy: 96.0%, F1: 95.8%, Recall: 96.0% |
+| MIC Regression (E. coli, S. aureus, P. aeruginosa) | XGBoost + ProtBert | R²: 0.68–0.70 |
+| MIC Regression (K. pneumoniae) | MLP + ProtBert | R²: 0.74, MSE: 0.43 |
+
+---
 
 ## Installation
 
 ```bash
 git clone https://github.com/NonZeroExitAli/Antimicrobial-Peptides-Identification.git
+cd Antimicrobial-Peptides-Identification
+pip install -r requirements.txt
 ```
+## Primary Notebooks
 
-## Primary Scripts
+### Classification_SourceCode.ipynb
+- Loads and preprocesses AMP and non-AMP datasets  
+- Extracts physicochemical features using ProPy3  
+- Applies feature selection (Boruta, RFE, VT, RF importance)  
+- Trains and evaluates ML classifiers (SVM, RF, KNN)  
+- Computes Accuracy, F1-score, Recall, Precision, and ROC-AUC metrics  
 
-1. **AMPs_Data_cleaning&Feature__extraction.ipynb**  
-   - Preprocesses and cleans AMP and non-AMP datasets.  
-   - Extracts features such as Amino Acid Composition (AAC), Autocorrelation, CTD, and PseudoAAC.  
-   - Outputs: feature files for all possible combinations of feature classes.
+### Regression_SourceCode.ipynb
+- Preprocesses MIC data for *E. coli*, *S. aureus*, *P. aeruginosa*, and *K. pneumoniae*  
+- Generates ProtBert embeddings and physicochemical descriptors  
+- Trains regression models (XGBoost, RF Regressor, SVR, MLP)  
+- Evaluates with R², MSE, and correlation coefficients  
+- Outputs plots of true vs predicted MIC and Bland–Altman analysis  
 
-2. **AMPs_Preprocessing_&_FS_&_Models.ipynb**  
-   - Applies various feature selection techniques, including Variance Threshold (VT), Recursive Feature Elimination (RFE), and Random Forest-based selection.
-   - Trains machine learning models (SVM, Random Forest, KNN) using selected features.
-   - Evaluates models on accuracy, precision, recall, F1-score, and ROC-AUC. 
-   - Outputs: Model performance metrics and visualizations.
+---
 
-## Primary Data Structures
+## Data Format
 
-The following dataframe is a required input for the computational platform:
+### Classification Input
 
-1. **AMPs_Data.csv**  
-   Merged and cleaned data of AMPs and non-AMPs. Example structure:
-   | Peptide_ID | Sequence          | Activity |
-   |------------|-------------------|----------|
-   | AMP_001    | VGGVPAGPAQ        | AMP      |
-   | NONAMP_001 | LLLKKVVGGAA       | nonAMP   |
-   | ...        | ...               | ...      |
+| Peptide_ID | Sequence | Activity |
+|-------------|-----------|-----------|
+| AMP_001 | VGGVPAGPAQ | AMP |
+| NONAMP_001 | LLLKKVVGGAA | nonAMP |
 
+### Regression Input
 
-## External Packages of Note
+| Sequence | Organism | MIC (µM) |
+|-----------|-----------|-----------|
+| RFRPPIRRPPI | *E. coli* | 2.33 |
+| GIGTKILGGVKT | *P. aeruginosa* | 7.21 |
 
-1. **[ProPy](https://github.com/ShujiaHuang/Propy)**  
-   - For feature extraction of protein sequences.
+---
 
-2. **[Imbalanced-learn](https://imbalanced-learn.org/)**  
-   - For handling class imbalances using SMOTE.
+## Tools and Libraries
+
+- ProPy3 — Feature extraction  
+- Imbalanced-learn (SMOTE) — Class balancing  
+- SHAP & LIME — Explainable AI  
+- scikit-learn, XGBoost, PyTorch — Model training  
+- HuggingFace Spaces — Deployment  
+
+---
+
 ## Contributors
-  - Ali Magdi
-  - Omar Loay
-  - Ahmed Amr
+
+- Ali Magdi — Project design, modeling, deployment  
+- Ahmed Amr — Data acquisition and validation  
+- Eman Badr — Supervision
+

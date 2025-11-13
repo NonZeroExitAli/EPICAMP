@@ -42,7 +42,7 @@ Antimicrobial peptides (AMPs) are promising alternatives to antibiotics. This pr
      - Recursive Feature Elimination (RFE)
      - Random Forest Importance
      - Boruta Algorithm  
-   - Generated over 225 feature combinations for classification and regression.
+   - Generated over 225 feature combinations for classification and regression(for each organism).
 
 4. **Model Training**  
    - Classification Models: Random Forest (RF), Support Vector Machine (SVM), K-Nearest Neighbors (KNN)  
